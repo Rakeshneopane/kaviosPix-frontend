@@ -9,7 +9,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
-import { GoogleCallbackPage } from './pages/GoogleCallBackPage.jsx';
+import { GoogleCallbackPage } from './pages/GoogleCallbackPage.jsx';
 import { DashBoardPage } from './pages/DashBoardPage.jsx';
 import { ProtectedRoute } from './routes/ProtectedRoute.jsx';
 import AlbumsPage from './components/albums/AlbumsPage.jsx';

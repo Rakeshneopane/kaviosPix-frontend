@@ -6,8 +6,8 @@ import { DialogTrigger } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
 export default function NavbarComponent(){
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [searchInput, SetSearchInput] = useState("");
+    const [ menuOpen, setMenuOpen ] = useState(false);
+    const [ searchInput, SetSearchInput ] = useState("");
     return (
         <nav className="border-b border-border bg-background bg-gray-300 text-black shadow">
         <div className="flex px-4 h-14 gap-3 shadow items-center justify-between" >
@@ -40,12 +40,13 @@ export default function NavbarComponent(){
             <div className="hidden md:flex items-center gap-2 ">
                 <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />  
-                    <Input className={"pl-8 h-8 text-sm"}/>  
+                    <Input 
+                        className={"pl-8 h-8 text-sm"}
+                        value={searchInput}
+                        onChange={(e) => SetSearchInput(e.target.value)}
+                    />
                 </div>  
                 {/* <Button size="sm"><Upload className="h-3.5 w-3.5 mr-1.5"/> Upload</Button>   */}
-                <DialogTrigger asChild>
-                    <Button size="sm"> <Upload className="h-3.5 w-3.5 mr-1.5"/> Upload </Button>
-                </DialogTrigger>
                 <Button variant="outline" size="icon" className={"h-8 w-8 rounded-full bg-gray-300"}> 
                     <User className="text-black"/> 
                 </Button>
@@ -77,9 +78,6 @@ export default function NavbarComponent(){
                 </Button>
                 {/* className="justify-start" */}
                 <Button variant="ghost" > <User /> </Button>
-                <DialogTrigger asChild>
-                    <Button size="sm"> <Upload className="h-3.5 w-3.5 mr-1.5"/> Upload </Button>
-                </DialogTrigger>
             </div>
         )}
         </nav>

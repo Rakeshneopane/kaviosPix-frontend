@@ -59,9 +59,9 @@ export const deleteImage = createAsyncThunk("image/delete", async( imageId, {rej
     }
 })
 
-export const filteredImages = createAsyncThunk("image/filtered", async( albumId, {rejectWithValue} )=>{
+export const filteredImages = createAsyncThunk("image/filtered", async({ albumId, tag }, {rejectWithValue} )=>{
     try {
-        const response = await axiosInstance.patch(`/image${albumId}/images/filter`, albumUpdateData);
+        const response = await axiosInstance.get(`/image/${albumId}/images/filter?tag=${tag}`);
         console.log("response of filtered images thunk", response);
         return response.data;
     } catch (error) {
@@ -71,7 +71,7 @@ export const filteredImages = createAsyncThunk("image/filtered", async( albumId,
 
 export const toggleImages = createAsyncThunk("image/toggled", async( { imageId, imageData }, {rejectWithValue} )=>{
     try {
-        const response = await axiosInstance.put(`/image${imageId}/toggle`, imageData);
+        const response = await axiosInstance.put(`/image/${imageId}/toggle`, imageData);
         console.log("response of filtered images thunk", response);
         return response.data;
     } catch (error) {
@@ -81,7 +81,7 @@ export const toggleImages = createAsyncThunk("image/toggled", async( { imageId, 
 
 export const commentImages = createAsyncThunk("image/commented", async( { imageId, comments }, {rejectWithValue} )=>{
     try {
-        const response = await axiosInstance.patch(`/image${imageId}/comment`, comments);
+        const response = await axiosInstance.patch(`/image/${imageId}/comment`, comments);
         console.log("response of filtered images thunk", response);
         return response.data;
     } catch (error) {
@@ -93,125 +93,112 @@ export const commentImages = createAsyncThunk("image/commented", async( { imageI
 const imageReducer = createSlice({
     name: "image",
     initialState,
-    reducers: {},
+    reducers: {
+        clearImageStatus: (state) => {
+            state.imageStatus = "idle";
+        }
+    },
     extraReducers: (builder)=>{
         builder
         // upload Images
         .addCase(uploadImages.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(uploadImages.fulfilled, (state, action)=>{
-            state.status = "success";
-            state.images = action.payload.albums;
+            state.imageStatus = "success";
+            if (action.payload.images) {
+                state.imagesData = [...state.imagesData, ...action.payload.images];
+            }
         })
         .addCase(uploadImages.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
         // fetch all Images
         .addCase(fetchAllImages.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(fetchAllImages.fulfilled, (state, action)=>{
-            state.status = "success";
-            state.images = action.payload.albums;
+            state.imageStatus = "success";
+            state.imagesData = action.payload.images;
         })
         .addCase(fetchAllImages.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
         // fetch an image
         .addCase(fetchImage.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(fetchImage.fulfilled, (state, action)=>{
-            state.status = "success";
+            state.imageStatus = "success";
             state.currentImage = action.payload.image;
         })
         .addCase(fetchImage.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
         //get favorites images
         .addCase(favoriteImages.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(favoriteImages.fulfilled, (state, action)=>{
-            state.status = "success";
+            state.imageStatus = "success";
             state.favoriteImages = action.payload.image;
         })
         .addCase(favoriteImages.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
-        //update album
-        // .addCase(updateAlbum.pending, (state)=>{
-        //     state.status="loading";
-        // })
-        // .addCase(updateAlbum.fulfilled, (state, action)=>{
-        //     state.status = "success";
-        //     const updatedAlbumId = action.payload.updatedAlbumId;
-        //     state.albums = state.albums.map((album)=> {
-        //         if(album._id === updatedAlbumId){
-        //             const modifiedAlbum = action.payload.album
-        //             return modifiedAlbum
-        //         }
-        //         return album 
-        //     })
-        // })
-        // .addCase(updateAlbum.rejected, (state, action)=>{
-        //     state.status = "error",
-        //     state.error = action.payload
-        // })
         //toggle image
         .addCase(toggleImages.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(toggleImages.fulfilled, (state, action)=>{
-            state.status = "success";
-            state.favoriteImages = state.images.map((image)=>
-                {
-                    if(image._id == action.payload.image._id){
-                    return image.isFavorite = action.payload.image.isFavorite;
-                }
-            });
-        })
+            state.imageStatus = "success";
+            state.imagesData = state.imagesData.map((image)=>
+                    image._id === action.payload.image._id 
+                        ? { ...image, isFavorite: action.payload.image.isFavorite }
+                        : image
+                );                
+            })
         .addCase(toggleImages.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
         //add comments in image
         .addCase(commentImages.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(commentImages.fulfilled, (state, action)=>{
-            state.status = "success";
-            state.images = state.images.map((image)=> {
+            state.imageStatus = "success";
+            state.imagesData = state.imagesData.map((image)=> {
                 if(image._id == action.payload.image._id){
-                    image.comments = action.payload.image.comments;
+                    return {...image, comments: action.payload.image.comments}
                 }
                 return image;
             });
         })
         .addCase(commentImages.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
         // delete image
         .addCase(deleteImage.pending, (state)=>{
-            state.status="loading";
+            state.imageStatus="loading";
         })
         .addCase(deleteImage.fulfilled, (state, action)=>{
-            state.status = "success";
-            state.images = state.images.filter((image)=> image._id !== action.payload.image._id);
+            state.imageStatus = "success";
+            state.imagesData = state.imagesData.filter((image)=> image._id !== action.payload.image._id);
         })
         .addCase(deleteImage.rejected, (state, action)=>{
-            state.status = "error";
-            state.error = action.payload;
+            state.imageStatus = "error";
+            state.imageError = action.payload;
         })
-
     }
 });
+
+export const { clearImageStatus } = imageReducer.actions;
 
 const { reducer } = imageReducer;
 export default reducer;

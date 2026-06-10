@@ -2,7 +2,8 @@ import {Outlet} from "react-router-dom"
 import Footer from "@/components/Footer/Footer.jsx"
 import NavbarComponent from "@/components/navbar/Navbar.jsx";
 import { Dialog } from "@/components/ui/dialog.jsx";
-import './App.css'
+import './App.css';
+import { Toaster } from "sonner";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Outlet />
         </main>
         <Footer />
+        <Toaster position="top-right" richColors closeButton />
       </div>
     </Dialog>
   )

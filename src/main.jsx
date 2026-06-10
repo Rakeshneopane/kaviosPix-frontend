@@ -12,7 +12,8 @@ import { LoginPage } from './pages/LoginPage.jsx';
 import { GoogleCallbackPage } from './pages/GoogleCallBackPage.jsx';
 import { DashBoardPage } from './pages/DashBoardPage.jsx';
 import { ProtectedRoute } from './routes/ProtectedRoute.jsx';
-import AlbumSection from './components/albums/AlbumSection.jsx';
+import AlbumsPage from './components/albums/AlbumsPage.jsx';
+import AlbumDetailPage from "./components/albums/AlbumDetailsPage.jsx"
 
 const router = createBrowserRouter([ 
   {
@@ -43,7 +44,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/albums",
-        element: <AlbumSection />
+        element: <AlbumsPage />
+      },
+      {
+        path: "/album/:albumId",
+        element: <AlbumDetailPage />
       },
     ]
   }

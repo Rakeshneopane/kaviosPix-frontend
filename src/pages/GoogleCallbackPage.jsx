@@ -1,36 +1,19 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchUser } from "../store/slices/authSlice.js";
+import { useNavigate } from "react-router-dom";
 
-export const GoogleCallbackPage = () =>{
+export const GoogleCallbackPage = () => {
     const navigate = useNavigate();
-    const dispatch = useDispatch();
-
-     const {userData : user, userStatus} = useSelector((state)=> {
-        console.log("state from callback: ", state);
-        return state.userSlice});
-
-    //fetching when component mounts
+    
     useEffect(() => {
-        if(userStatus === "idle"){
-            dispatch(fetchUser());}        
-    }, [userStatus, dispatch]);
-
-    console.log("user from callback: ",user)
-   
-    useEffect(()=>{
-        if(userStatus === "loading" || userStatus === "idle") {
-            console.log("Still loading, waiting...");
-            return;
-        }
-        if(user){
-            console.log("navigating with user:", user, "status:", userStatus);
-            navigate("/dashboard");
-        }
-        else
-            navigate("/login", {replace: true})
-    },[user, userStatus]);
-
-    return <p>Logging you in... status = {userStatus} </p>
-}
+        // Seedha dashboard bhejo - ProtectedRoute handle kar lega fetching
+        navigate("/dashboard", { replace: true });
+    }, [navigate]);
+    
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <p className="text-lg">Logging you in...</p>
+            </div>
+        </div>
+    );
+};

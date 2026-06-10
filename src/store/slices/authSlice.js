@@ -30,6 +30,7 @@ const userReducer = createSlice({
             state.userError = null;
         })
         .addCase(fetchUser.fulfilled, (state, action)=>{
+            console.log("FULFILLED - updating state");
             state.userStatus = "success";
             state.userData = action.payload.user;
             state.userError = null;

@@ -7,9 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { clearImageStatus } from "@/store/slices/imageSlice";
 import { fetchAlbum, clearAlbumStatus } from "@/store/slices/albumSlice";
-import ImageGallery from "../images/ImageGallery";
-import FavoriteImages from "../images/FavoriteImages";
-import axiosInstance from "@/utils/axiosInstance";
+import ImageGallery from "../images/ImageGallery.jsx";
+import FavoriteImages from "../images/FavoriteImages.jx";
+import axiosInstance from "@/utils/axiosInstance.js";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";

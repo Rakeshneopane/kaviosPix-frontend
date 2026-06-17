@@ -4,7 +4,10 @@ import axiosInstance from "../../utils/axiosInstance.js";
 const initialState = {
     albumsData: [],
     currentAlbum: null, 
-    albumStatus: "idle",
+    currentAlbumId: null,
+    fetchAlbumsStatus: "idle",
+    fetchAlbumStatus: "idle",
+    mutationStatus: "idle",
     albumError: null,
 }
 
@@ -14,7 +17,7 @@ export const fetchAlbum = createAsyncThunk("album/fetch", async( albumId, {rejec
         console.log("response of fetch particular album thunk", response);
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response?.data?.message ?? error.message ?? 'Unknown error');
     }
 })
 
@@ -24,7 +27,7 @@ export const fetchAllAlbum = createAsyncThunk("all_album/fetch", async( _, {reje
         console.log("response of fetch all album thunk", response);
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data.message); 
+        return rejectWithValue(error.response?.data?.message ?? error.message ?? 'Unknown error'); 
     }
 })
 
@@ -34,7 +37,7 @@ export const createAlbum = createAsyncThunk("album/create", async( albumData, {r
         console.log("response of create album thunk", response);
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response?.data?.message ?? error.message ?? 'Unknown error');
     }
 })
 
@@ -44,7 +47,7 @@ export const deleteAlbum = createAsyncThunk("album/delete", async( albumId, {rej
         console.log("response of delete album thunk", response);
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response?.data?.message ?? error.message ?? 'Unknown error');
     }
 })
 
@@ -54,7 +57,7 @@ export const updateAlbum = createAsyncThunk("album/update", async( { albumId, al
         console.log("response of delete album thunk", response);
         return {...response.data, updatedAlbumId: albumId};
     } catch (error) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response?.data?.message ?? error.message ?? 'Unknown error');
     }
 })
 
@@ -63,55 +66,63 @@ const albumReducer = createSlice({
     initialState,
     reducers: {
         clearAlbumStatus: (state) => {
-            state.albumStatus = "idle";
-            state.albumsData = [];
+            state.fetchAlbumStatus = "idle";
+            state.mutationStatus = "idle";
+            state.currentAlbum = null;
+            state.currentAlbumId = null;
+            state.albumError = null;
         }
     },
     extraReducers: (builder)=>{
         builder
         // fetch all albums
         .addCase(fetchAllAlbum.pending, (state)=>{
-            state.albumStatus="loading";
+            state.fetchAlbumsStatus="loading";
         })
         .addCase(fetchAllAlbum.fulfilled, (state, action)=>{
             console.log("payload shape:", action.payload);
-            state.albumStatus = "success";
+            state.fetchAlbumsStatus = "success";
             state.albumsData = action.payload.albums || (action.payload.album ? [action.payload.album] : []);
         })
         .addCase(fetchAllAlbum.rejected, (state, action)=>{
-            state.albumStatus = "error";
+            state.fetchAlbumsStatus = "error";
             state.albumError = action.payload;
         })
         // fetch an album
-        .addCase(fetchAlbum.pending, (state)=>{
-            state.albumStatus="loading";
+        .addCase(fetchAlbum.pending, (state, action)=>{
+            state.fetchAlbumStatus="loading";
+            state.currentAlbumId = action.meta.arg;
         })
         .addCase(fetchAlbum.fulfilled, (state, action)=>{
-            state.albumStatus = "success";
-            state.currentAlbum = action.payload.album;
+            if (action.meta.arg === state.currentAlbumId) {
+                state.fetchAlbumStatus = "success";
+                state.currentAlbum = action.payload.album;
+            }
         })
         .addCase(fetchAlbum.rejected, (state, action)=>{
-            state.albumStatus = "error";
-            state.albumError = action.payload;
+            if (action.meta.arg === state.currentAlbumId) {
+                state.fetchAlbumStatus = "error";
+                state.albumError = action.payload;
+            }
         })
         //create album
         .addCase(createAlbum.pending, (state)=>{
-            state.albumStatus="loading";
+            state.mutationStatus="loading";
         })
         .addCase(createAlbum.fulfilled, (state, action)=>{
-            state.albumStatus = "success";
+            state.mutationStatus = "success";
             state.albumsData.push(action.payload.album);
         })
         .addCase(createAlbum.rejected, (state, action)=>{
-            state.albumStatus = "error";
+            state.mutationStatus = "error";
             state.albumError = action.payload;
         })
         //update album
         .addCase(updateAlbum.pending, (state)=>{
-            state.albumStatus="loading";
+            state.mutationStatus="loading";
         })
         .addCase(updateAlbum.fulfilled, (state, action)=>{
-            state.albumStatus = "success";
+            state.mutationStatus = "success";
             const updatedAlbumId = action.payload.updatedAlbumId;
             state.albumsData = state.albumsData.map((album)=> {
                 if(album._id === updatedAlbumId){
@@ -122,19 +133,19 @@ const albumReducer = createSlice({
             })
         })
         .addCase(updateAlbum.rejected, (state, action)=>{
-            state.albumStatus = "error";
+            state.mutationStatus = "error";
             state.albumError = action.payload;
         })
         // delete album
         .addCase(deleteAlbum.pending, (state)=>{
-            state.albumStatus="loading";
+            state.mutationStatus="loading";
         })
         .addCase(deleteAlbum.fulfilled, (state, action)=>{
-            state.albumStatus = "success";
+            state.mutationStatus = "success";
             state.albumsData = state.albumsData.filter((album)=> album._id !== action.payload.album._id);
         })
         .addCase(deleteAlbum.rejected, (state, action)=>{
-            state.albumStatus = "error";
+            state.mutationStatus = "error";
             state.albumError = action.payload;
         })
 

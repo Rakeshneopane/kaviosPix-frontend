@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import EditAlbumDialog from "@/components/albums/EditAlbumDialog.jsx";
 
 export default function AlbumsPage() {
-    const { albumsData: albums, albumStatus, albumError } = useSelector((state) => state.albumSlice);
+    const { albumsData: albums, fetchAlbumsStatus, albumError } = useSelector((state) => state.albumSlice);
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -28,30 +28,35 @@ export default function AlbumsPage() {
     const [albumToEdit, setAlbumToEdit] = useState(null);
 
     useEffect(()=>{
-        if(albumStatus === "idle"){
+        if(fetchAlbumsStatus === "idle"){
             dispatch(fetchAllAlbum());
         }
-    }, [dispatch, albumStatus]);
+    }, [dispatch, fetchAlbumsStatus]);
     
     const [searchTerm, setSearchTerm] = useState("");
     const [showCreateAlbum, setShowCreateAlbum] = useState(false);
     const [sortBy, setSortBy] = useState("newest");
-    const [showFilters, setShowFilters] = useState(false);
     const [filterDialogOpen, setFilterDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [albumToDelete, setAlbumToDelete] = useState(null);
+    const [confirmName, setConfirmName] = useState("");
 
     const handleDeleteAlbum = async () => {
         if (albumToDelete) {
+            if (confirmName !== albumToDelete.name) {
+                toast.error("Album name does not match!");
+                return;
+            }
             try {
-                await dispatch(deleteAlbum(albumToDelete)).unwrap();
+                await dispatch(deleteAlbum(albumToDelete._id)).unwrap();
                 toast.success("Album deleted successfully");
                 dispatch(fetchAllAlbum());
             } catch (error) {
-                toast.error("Failed to delete album" || error.message);
+                toast.error(error.message || "Failed to delete album");
             } finally {
                 setDeleteDialogOpen(false);
                 setAlbumToDelete(null);
+                setConfirmName("");
             }
         }
     };
@@ -77,7 +82,7 @@ export default function AlbumsPage() {
     });
     
     // Loading state
-    if (albumStatus === "loading") {
+    if (fetchAlbumsStatus === "loading") {
         return (
             <div className="p-4">
                 {/* Header Skeletons */}
@@ -103,7 +108,7 @@ export default function AlbumsPage() {
         );
     }
     // Error state
-    if (albumStatus === "error") {
+    if (fetchAlbumsStatus === "error") {
         return (
             <div className="p-4 text-center py-12">
                 <p className="text-red-500 mb-4">Error loading albums: {albumError}</p>
@@ -182,11 +187,12 @@ export default function AlbumsPage() {
                                 setEditDialogOpen(true);
                             }}
                             onDelete={() => {
-                                if (album.name === "Default Album") {
+                                if (album.isDefault) {
                                     toast.error("Default album cannot be deleted.");
                                     return;
                                 }
-                                setAlbumToDelete(album._id);
+                                setAlbumToDelete(album);
+                                setConfirmName("");
                                 setDeleteDialogOpen(true);
                             }}
                         />
@@ -207,22 +213,38 @@ export default function AlbumsPage() {
                 onSortChange={setSortBy}
             />
 
-            {/* Delete Donfirmmation Dialog */}
+            {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete Album?</DialogTitle>
                         <DialogDescription>
-                            This action cannot be undone. All photos in this album will be moved to "Default Album".
+                            This action cannot be undone. All photos in this album will be permanently deleted.
+                            Please type <span className="font-semibold text-black">{albumToDelete?.name}</span> to confirm deletion.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={handleDeleteAlbum}>
-                            Delete
-                        </Button>
+                    <div className="mt-4 space-y-4">
+                        <Input
+                            placeholder="Type album name..."
+                            value={confirmName}
+                            onChange={(e) => setConfirmName(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => {
+                                setDeleteDialogOpen(false);
+                                setAlbumToDelete(null);
+                                setConfirmName("");
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="destructive" 
+                                onClick={handleDeleteAlbum}
+                                disabled={confirmName !== albumToDelete?.name}
+                            >
+                                Delete
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

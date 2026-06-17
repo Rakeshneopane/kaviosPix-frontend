@@ -158,7 +158,7 @@ function SmallAlbumCard({ album, onClick }) {
                         <Images className="h-8 w-8 text-muted-foreground/40" />
                     </div>
                 )}
-                {album.sharedUserIds.length > 0 && (
+                {album.sharedUserIds?.length > 0 && (
                     <Badge className="absolute top-2 left-2 text-xs" variant="secondary">
                         Shared
                     </Badge>

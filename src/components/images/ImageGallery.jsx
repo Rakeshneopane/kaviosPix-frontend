@@ -12,7 +12,7 @@ import { Button } from '../ui/button.jsx';
 
 export default function ImageGallery({ albumId, isOwner }) {
     const dispatch = useDispatch();
-    const { imagesData, imageStatus } = useSelector((state) => state.imageSlice);
+    const { imagesData, fetchImagesStatus } = useSelector((state) => state.imageSlice);
     const [selectedImage, setSelectedImage] = useState(null);
     const [showUploader, setShowUploader] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -93,7 +93,7 @@ export default function ImageGallery({ albumId, isOwner }) {
         return filtered;
     }, [imagesData, searchTerm, sortBy]);
 
-    if (imageStatus === 'loading') {
+    if (fetchImagesStatus === 'loading') {
         return (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -103,7 +103,7 @@ export default function ImageGallery({ albumId, isOwner }) {
         );
     }
 
-    if (imageStatus === 'error') {
+    if (fetchImagesStatus === 'error') {
         return (
             <div className="text-center py-12">
                 <p className="text-red-500">Failed to load images. Please try again.</p>

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { ArrowLeft, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { clearImageStatus } from "@/store/slices/imageSlice";
 import { fetchAlbum, clearAlbumStatus } from "@/store/slices/albumSlice";
@@ -21,10 +20,10 @@ export default function AlbumDetailPage() {
   const dispatch = useDispatch();
 
   const { currentAlbum } = useSelector((state) => state.albumSlice);
-  const { imagesData: images, imageStatus } = useSelector((state) => state.imageSlice);
+  const { imagesData: images } = useSelector((state) => state.imageSlice);
   const { userData: user } = useSelector((state) => state.userSlice);
   
-  const isOwner = currentAlbum?.ownerId?.toString() === user?._id?.toString();
+  const isOwner = currentAlbum?._id?.toString() === albumId?.toString() && currentAlbum?.ownerId?.toString() === user?._id?.toString();
 
   const [activeTab, setActiveTab] = useState("all");
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -68,19 +67,6 @@ export default function AlbumDetailPage() {
       setShareLoading(false);
     }
   };
-
-  if (imageStatus === "loading" && !images?.length) {
-    return (
-      <div className="min-h-screen p-8">
-        <Skeleton className="h-8 w-32 mb-8" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -132,11 +118,12 @@ export default function AlbumDetailPage() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
-        {activeTab === "all" ? (
+        <div className={activeTab === "all" ? "" : "hidden"}>
           <ImageGallery albumId={albumId} isOwner={isOwner} />
-        ) : (
+        </div>
+        <div className={activeTab === "favorites" ? "" : "hidden"}>
           <FavoriteImages albumId={albumId} />
-        )}
+        </div>
       </div>
 
       {/* Share Dialog */}

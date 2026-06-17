@@ -38,36 +38,47 @@ export default function UploadModal({ open, onOpenChange }){
         file: null,
     });
 
-    const [hasUploaded, setHasUploaded] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const {albumsData: albums} = useSelector((state)=> state.albumSlice);
 
-    const { imageStatus, imageError } = useSelector((state)=> state.imageSlice);
-    const defaultAlbum = albums?.find((album)=> album.name === "default Album"); 
+    const { uploadStatus, imageError } = useSelector((state)=> state.imageSlice);
+    const defaultAlbum = albums?.find((album)=> album.isDefault); 
 
     useEffect(() => {
-        if (open && imageStatus === "success") {
+        if (open && defaultAlbum && !imageFile.albumId) {
+            setImageFile(prev => ({ ...prev, albumId: defaultAlbum._id }));
+        }
+    }, [open, defaultAlbum, imageFile.albumId]);
+
+    useEffect(() => {
+        if (!open) {
+            // When modal closes, reset upload status so it doesn't linger
+            dispatch(clearImageStatus());
+            setIsUploading(false);
+            return;
+        }
+
+        if (uploadStatus === "success") {
             setIsUploading(false);
             toast.success("Upload successful!");
             // Reset form
             setImageFile({ type: "", tags: "", albumId: "", file: null });
             // Clear status
             dispatch(clearImageStatus());
-            // // Close modal if onClose provided
-            // if (onClose) onClose();
             onOpenChange(false);
         }
         
-        if (open && imageStatus === "error") {
+        if (uploadStatus === "error") {
             setIsUploading(false);
-            alert(imageError || "Upload failed");
+            toast.error(imageError || "Upload failed");
             dispatch(clearImageStatus());
         }
-    }, [imageStatus, imageError, dispatch, onOpenChange]);
+    }, [open, uploadStatus, imageError, dispatch, onOpenChange]);
 
     function handleFileChange(e){
         
         const file = e.target.files[0];
+        if (!file) return;
         
         const MAX_BYTES = 5 * 1024 * 1024;
         const acceptedName = ["jpeg", "png", "jpg", "webp",];
@@ -80,7 +91,6 @@ export default function UploadModal({ open, onOpenChange }){
         setImageFile((prev)=> (
             {...prev, 
             type: file.type,
-            // albumId: file.albumId,
             file,
          }));
     }
@@ -99,7 +109,7 @@ export default function UploadModal({ open, onOpenChange }){
 
         const formData = new FormData();
 
-        formData.append("image", imageFile.file);
+        formData.append("images", imageFile.file); // Backend expects "images" field name matching upload.array("images", 15)
 
         const tagsArray = imageFile.tags 
                             ? imageFile.tags.split(",").map((tag)=>tag.trim())
@@ -107,33 +117,9 @@ export default function UploadModal({ open, onOpenChange }){
 
         formData.append("tags", JSON.stringify(tagsArray));
         formData.append("albumId", imageFile.albumId);
-
         
-        setIsUploading(true);
-        setHasUploaded(true);
         dispatch(uploadImages(formData));
-        
     }
-
-    useEffect(() => {
-    if (!hasUploaded) return;
-    
-    if (imageStatus === "success") {
-        setIsUploading(false);
-        toast.success("Upload successful!");
-        setImageFile({ type: "", tags: "", albumId: "", file: null });
-        dispatch(clearImageStatus());
-        onOpenChange(false);
-        setHasUploaded(false);
-    }
-    
-    if (imageStatus === "error") {
-        setIsUploading(false);
-        toast.error(imageError || "Upload failed");
-        dispatch(clearImageStatus());
-        setHasUploaded(false);
-    }
-}, [imageStatus, imageError, dispatch, onOpenChange, hasUploaded]);
 
     return(
         <Dialog open={open} onOpenChange={onOpenChange} >            
@@ -182,6 +168,7 @@ export default function UploadModal({ open, onOpenChange }){
                     ></Input>
                 <Button 
                     onClick={(e)=>handleSubmit(e)} 
+                    disabled={isUploading}
                 >  
                     {isUploading ? "Uploading..." : "Upload"}
                 </Button>

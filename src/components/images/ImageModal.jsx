@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { X, Heart, Download, MessageCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,18 +9,26 @@ import { toast } from "sonner";
 
 export default function ImageModal({ image, onClose, onToggleFavorite }) {
     const dispatch = useDispatch();
+    
+    // Select the actual image live from Redux store to avoid stale state
+    const actualImage = useSelector(state => 
+        state.imageSlice.imagesData?.find(img => img._id === image._id) || 
+        state.imageSlice.favoriteImages?.find(img => img._id === image._id) || 
+        image
+    );
+
     const [comment, setComment] = useState("");
     const [isCommenting, setIsCommenting] = useState(false);
-    const [localComments, setLocalComments] = useState(image?.comments || []);
-    const [isFavorite, setIsFavorite] = useState(image?.isFavorite);
+
+    const comments = actualImage?.comments || [];
+    const isFavorite = actualImage?.isFavorite || false;
 
     const handleToggleFavorite = async () => {
         try {
             await dispatch(toggleImages({
-                imageId: image._id,
+                imageId: actualImage._id,
                 imageData: { isFavorite: !isFavorite }
             })).unwrap();
-            setIsFavorite(f => !f);
             toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
             onToggleFavorite?.();
         } catch {
@@ -32,11 +40,10 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
         if (!comment.trim()) return;
         setIsCommenting(true);
         try {
-            const result = await dispatch(commentImages({
-                imageId: image._id,
+            await dispatch(commentImages({
+                imageId: actualImage._id,
                 comments: { comment: comment.trim() }
             })).unwrap();
-            setLocalComments(result.image.comments);
             setComment("");
             toast.success("Comment added");
         } catch {
@@ -48,12 +55,12 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
 
     const handleDownload = async () => {
         try {
-            const response = await fetch(image.url);
+            const response = await fetch(actualImage.url);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = image.name || "image.jpg";
+            link.download = actualImage.name || "image.jpg";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -63,7 +70,8 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
             toast.error("Failed to download");
         }
     };
-    if (!image) return null;
+
+    if (!actualImage) return null;
 
     return (
         <div
@@ -85,8 +93,8 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
                 {/* Image */}
                 <div className="bg-black flex items-center justify-center md:w-2/3 min-h-64">
                     <img
-                        src={image.url}
-                        alt={image.name}
+                        src={actualImage.url}
+                        alt={actualImage.name}
                         className="max-w-full max-h-[90vh] object-contain"
                     />
                 </div>
@@ -95,7 +103,7 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
                 <div className="md:w-1/3 flex flex-col p-4 overflow-y-auto">
                     
                     {/* Name */}
-                    <h3 className="font-semibold text-base truncate mb-1">{image.name}</h3>
+                    <h3 className="font-semibold text-base truncate mb-1">{actualImage.name}</h3>
 
                     {/* Actions */}
                     <div className="flex gap-2 mb-4">
@@ -119,11 +127,11 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
                     </div>
 
                     {/* Tags */}
-                    {image.tags?.length > 0 && (
+                    {actualImage.tags?.length > 0 && (
                         <div className="mb-4">
                             <p className="text-xs font-medium text-gray-500 mb-1">Tags</p>
                             <div className="flex flex-wrap gap-1">
-                                {image.tags.map((tag, i) => (
+                                {actualImage.tags.map((tag, i) => (
                                     <Badge key={i} variant="secondary" className="text-xs">
                                         #{tag}
                                     </Badge>
@@ -133,11 +141,11 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
                     )}
 
                     {/* Person */}
-                    {image.person?.length > 0 && (
+                    {actualImage.person?.length > 0 && (
                         <div className="mb-4">
                             <p className="text-xs font-medium text-gray-500 mb-1">People</p>
                             <div className="flex flex-wrap gap-1">
-                                {image.person.map((p, i) => (
+                                {actualImage.person.map((p, i) => (
                                     <Badge key={i} variant="outline" className="text-xs">
                                         {p}
                                     </Badge>
@@ -148,21 +156,21 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
 
                     {/* Metadata */}
                     <div className="mb-4 text-xs text-gray-400 space-y-1">
-                        {image.size && <p>Size: {(image.size / 1024).toFixed(1)} KB</p>}
-                        {image.createdAt && <p>Uploaded: {new Date(image.createdAt).toLocaleDateString()}</p>}
+                        {actualImage.size && <p>Size: {(actualImage.size / 1024).toFixed(1)} KB</p>}
+                        {actualImage.createdAt && <p>Uploaded: {new Date(actualImage.createdAt).toLocaleDateString()}</p>}
                     </div>
 
                     {/* Comments */}
                     <div className="flex-1 flex flex-col">
                         <p className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" /> Comments ({localComments.length})
+                            <MessageCircle className="w-3 h-3" /> Comments ({comments.length})
                         </p>
 
                         <div className="flex-1 overflow-y-auto space-y-2 mb-3 max-h-40">
-                            {localComments.length === 0 ? (
+                            {comments.length === 0 ? (
                                 <p className="text-xs text-gray-400">No comments yet</p>
                             ) : (
-                                localComments.map((c, i) => (
+                                comments.map((c, i) => (
                                     <div key={i} className="bg-gray-50 rounded-lg px-3 py-2 text-sm">
                                         {c}
                                     </div>

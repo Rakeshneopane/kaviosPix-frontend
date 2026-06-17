@@ -7,7 +7,7 @@ import { Heart } from 'lucide-react';
 
 export default function FavoriteImages({ albumId }) {
     const dispatch = useDispatch();
-    const { favoriteImages: favoriteImagesData, imageStatus } = useSelector((state) => state.imageSlice);
+    const { favoriteImages: favoriteImagesData, fetchFavoritesStatus } = useSelector((state) => state.imageSlice);
     
     useEffect(() => {
         if (albumId) {
@@ -15,7 +15,7 @@ export default function FavoriteImages({ albumId }) {
         }
     }, [albumId, dispatch]);
     
-    if (imageStatus === 'loading') {
+    if (fetchFavoritesStatus === 'loading') {
         return <div className="text-center py-12">Loading favorites...</div>;
     }
     

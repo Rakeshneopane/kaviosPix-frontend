@@ -23,11 +23,11 @@ export default function AlbumSection(){
     const { userData : user } = useSelector((state)=> {
         return state.userSlice
     });
-    const { albumsData: albums, albumStatus, albumError } = useSelector((state)=>state.albumSlice);
+    const { albumsData: albums, fetchAlbumsStatus, albumError } = useSelector((state)=>state.albumSlice);
     
     useEffect(()=>{
         const loadAlbum = async()=>{
-        if(user && albumStatus === "idle")
+        if(user && fetchAlbumsStatus === "idle")
             try {
                 await dispatch(fetchAllAlbum()).unwrap();
             } catch (error) {
@@ -35,9 +35,9 @@ export default function AlbumSection(){
             }
         }
         loadAlbum();          
-    },[user, dispatch, albumStatus]);
+    },[user, dispatch, fetchAlbumsStatus, albums]);
 
-    if(albumStatus === "loading"){
+    if(fetchAlbumsStatus === "loading"){
         return(
             <div  
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6"
@@ -52,7 +52,7 @@ export default function AlbumSection(){
         );
     }
 
-     if (albumStatus === "error") {
+     if (fetchAlbumsStatus === "error") {
         return (
             <div className="text-center py-8">
                 <p 

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import AlbumSection from "../components/albums/AlbumSection.jsx"
 import ImageUploader from "@/components/images/ImageUploader.jsx";
@@ -9,6 +9,7 @@ import { Upload } from "lucide-react";
 export const DashBoardPage = () => {
 
     console.log("DashboardPage rendered"); 
+    const dispatch = useDispatch();
     
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     
@@ -16,7 +17,32 @@ export const DashBoardPage = () => {
         return state.userSlice
     });
 
-    console.log("user: ", user);
+    const { albumsData: albums, fetchAlbumsStatus, albumError } = useSelector((state)=>state.albumSlice);
+        
+    console.log("Dashboard");
+    console.log("user:", user);
+    console.log("albumStatus:", fetchAlbumsStatus);
+    console.log("albums:", albums);
+    
+    useEffect(()=>{
+        console.log("effect running");
+
+        const loadAlbum = async()=>{
+                console.log("inside loadAlbum");
+                console.log("user:", user);
+                console.log("albumStatus:", fetchAlbumsStatus);
+
+            if(user && fetchAlbumsStatus === "idle") {
+                console.log("dispatching fetchAllAlbum");
+                try {
+                    await dispatch(fetchAllAlbum()).unwrap();
+                } catch (error) {
+                    console.log("error in dashboard fetchAllAlbums dispatch", error);
+                }
+            }
+        }
+        loadAlbum();          
+    },[user, dispatch, fetchAlbumsStatus]);
 
     return (
         <div className="h-full flex flex-col bg-gradient-to-br bg-gray-100 w-full">

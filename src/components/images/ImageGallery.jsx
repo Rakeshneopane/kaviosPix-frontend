@@ -24,13 +24,16 @@ export default function ImageGallery({ albumId, isOwner }) {
         }
     }, [albumId, dispatch]);
 
-    const handleToggleFavorite = async (imageId, currentStatus) => {
+    const handleToggleFavorite = async (imageId) => {
+        const currentImage = imagesData.find(img => img._id === imageId);
+        if (!currentImage) return;
+        
         try {
             await dispatch(toggleImages({ 
                 imageId, 
-                imageData: { isFavorite: !currentStatus } 
+                imageData: { isFavorite: !currentImage.isFavorite } 
             })).unwrap();
-            toast.success(currentStatus ? 'Removed from favorites' : 'Added to favorites');
+            toast.success(currentImage.isFavorite ? 'Removed from favorites' : 'Added to favorites');
         } catch (error) {
             toast.error('Failed to update favorite status');
         }
@@ -164,17 +167,22 @@ export default function ImageGallery({ albumId, isOwner }) {
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
-                    {filteredAndSortedImages.map((image) => (
-                        <ImageCard
-                            key={image._id}
-                            image={image}
-                            isOwner={isOwner} 
-                            onToggleFavorite={() => handleToggleFavorite(image._id, image.isFavorite)}
-                            onDelete={() => handleDeleteImage(image._id)}
-                            onDownload={() => handleDownloadImage(image.url, image.name)}
-                            onClick={() => setSelectedImage(image)}
-                        />
-                    ))}
+                    {filteredAndSortedImages.map((image) => {
+                        // ✅ Get the latest version from Redux store directly
+                        const latestImage = imagesData.find(img => img._id === image._id) || image;
+                        
+                        return (
+                            <ImageCard
+                                key={image._id}
+                                image={latestImage} // ✅ Pass the updated version
+                                isOwner={isOwner}
+                                onToggleFavorite={() => handleToggleFavorite(image._id)}
+                                onDelete={() => handleDeleteImage(image._id)}
+                                onDownload={() => handleDownloadImage(image.url, image.name)}
+                                onClick={() => setSelectedImage(image)}
+                            />
+                        );
+                    })}
                 </div>
             )}
 
@@ -191,7 +199,7 @@ export default function ImageGallery({ albumId, isOwner }) {
                 <ImageModal 
                     image={selectedImage}
                     onClose={() => setSelectedImage(null)}
-                    onToggleFavorite={() => handleToggleFavorite(selectedImage._id, selectedImage.isFavorite)}
+                    //onToggleFavorite={() => handleToggleFavorite(selectedImage._id, selectedImage.isFavorite)}
                 />
             )}
         </div>

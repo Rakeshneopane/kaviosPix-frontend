@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { commentImages, toggleImages } from "@/store/slices/imageSlice";
 import { toast } from "sonner";
 
-export default function ImageModal({ image, onClose, onToggleFavorite }) {
+export default function ImageModal({ image, onClose }) {
     const dispatch = useDispatch();
     
     // Select the actual image live from Redux store to avoid stale state
@@ -30,7 +30,7 @@ export default function ImageModal({ image, onClose, onToggleFavorite }) {
                 imageData: { isFavorite: !isFavorite }
             })).unwrap();
             toast.success(isFavorite ? "Removed from favorites" : "Added to favorites");
-            onToggleFavorite?.();
+            //onToggleFavorite?.();
         } catch {
             toast.error("Failed to update favorite");
         }

@@ -4,7 +4,7 @@
 
 A photo management web app built with React, Redux Toolkit, and Tailwind CSS. Think Google Photos, but built by one person who learned a lot about cookies along the way.
 
-**Backend Repo:** (https://github.com/Rakeshneopane/kaviosPix-backend)
+**Backend Repo:** [KaviosPix Backend](https://github.com/Rakeshneopane/kaviosPix-backend)
 
 ---
 

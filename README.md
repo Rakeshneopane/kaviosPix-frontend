@@ -4,7 +4,7 @@
 
 A photo management web app built with React, Redux Toolkit, and Tailwind CSS. Think Google Photos, but built by one person who learned a lot about cookies along the way.
 
-**Backend Repo:** [https://github.com/Rakeshneopane/imageApp-backend](https://github.com/Rakeshneopane/imageApp-backend)
+**Backend Repo:** (https://github.com/Rakeshneopane/kaviosPix-backend)
 
 ---
 
@@ -18,7 +18,7 @@ Click **"Continue with Google"** and sign in with any Google account to access t
 ## Demo
 
 
-**Live App:** [https://image-app-frontend-mu.vercel.app](https://image-app-frontend-mu.vercel.app)
+**Live App:** [https://image-app-frontend-mu.vercel.app](https://image-app-frontend-mu.vercel.app) <br>
 🎥 **Loom Walkthrough:** https://www.loom.com/share/495070d7ed004cb2a41547d0b2c2fdaa
 
 ---

@@ -18,8 +18,8 @@ Click **"Continue with Google"** and sign in with any Google account to access t
 ## Demo
 
 
-**Live App:** [https://image-app-frontend-mu.vercel.app](https://image-app-frontend-mu.vercel.app) <br>
-🎥 **Loom Walkthrough:** https://www.loom.com/share/495070d7ed004cb2a41547d0b2c2fdaa
+**Live App:** [KaviosPix Backend](https://image-app-frontend-mu.vercel.app) <br>
+🎥 **Loom Walkthrough:** [Watch Here](https://www.loom.com/share/495070d7ed004cb2a41547d0b2c2fdaa)
 
 ---
 
